@@ -13,7 +13,7 @@ def move_player(game_state, direction):
         # ПРОВЕРКА: Если идем в сокровищницу, нужен ржавый ключ
         if new_room == "treasure_room":
             if "rusty_key" in game_state["player_inventory"]:
-                print("Вы используете найденный ключ, чтобы открыть путь в комнату сокровищ.")
+                print("Вы используете найденный ключ, чтобы открыть путь в комнату сокровищ.")# noqa: E501
             else:
                 print("Дверь заперта. Нужен ключ (rusty_key), чтобы пройти дальше.")
                 return # Не даем пройти

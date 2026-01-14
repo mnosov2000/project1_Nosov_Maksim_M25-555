@@ -1,5 +1,11 @@
 import math
-from labyrinth_game.constants import ROOMS
+
+from labyrinth_game.constants import (
+    EVENT_PROBABILITY,
+    EVENT_TYPES_COUNT,
+    ROOMS,
+    TRAP_DAMAGE_THRESHOLD,
+)
 
 
 def pseudo_random(seed, modulo):
@@ -31,9 +37,10 @@ def trigger_trap(game_state):
         print(f"В суматохе вы выронили и потеряли: {lost_item}")
     else:
         # Если предметов нет — получаем урон
-        damage_roll = pseudo_random(steps, 10)
-        # Если число меньше 3 (30% шанс), игра окончена
-        if damage_roll < 3:
+        damage_roll = pseudo_random(steps, 10)  
+        
+        # Используем константу вместо "3"
+        if damage_roll < TRAP_DAMAGE_THRESHOLD:
             print("Ловушка захлопнулась фатально. Вы погибли.")
             game_state["game_over"] = True
         else:
@@ -44,13 +51,13 @@ def random_event(game_state):
     """Генерация случайных событий при перемещении."""
     steps = game_state["steps_taken"]
     
-    # 1. Проверяем, произойдет ли событие (шанс 1 из 10)
-    if pseudo_random(steps, 10) != 0:
+    # Используем константу EVENT_PROBABILITY вместо 10
+    if pseudo_random(steps, EVENT_PROBABILITY) != 0:
         return
 
-    # 2. Выбираем тип события (0, 1 или 2)
+    # Используем константу EVENT_TYPES_COUNT вместо 3
     # Важно: меняем seed (steps + 1), чтобы не зависеть от предыдущего random
-    event_type = pseudo_random(steps + 1, 3)
+    event_type = pseudo_random(steps + 1, EVENT_TYPES_COUNT)
 
     current_room = game_state["current_room"]
     room_data = ROOMS[current_room]
@@ -65,14 +72,18 @@ def random_event(game_state):
         # Сценарий 2: Испуг
         print("\n[Случайное событие] Вы слышите странный шорох за спиной...")
         if "sword" in game_state["player_inventory"]:
-            print("Вы хватаетесь за рукоять меча, и шорох стихает. Существо испугалось.")
+            print("Вы хватаетесь за рукоять меча, и шорох стихает. Существо испугалось.")# noqa: E501
         else:
             print("У вас нет оружия, становится жутко.")
 
     elif event_type == 2:
+        
         # Сценарий 3: Ловушка
         # Условия: комната trap_room И нет факела
-        if current_room == "trap_room" and "torch" not in game_state["player_inventory"]:
+        is_trap = current_room == "trap_room"
+        no_torch = "torch" not in game_state["player_inventory"]
+        
+        if is_trap and no_torch:
             print("\n[Случайное событие] В темноте вы задели механизм!")
             trigger_trap(game_state)
 
@@ -172,15 +183,3 @@ def show_help(commands_dict):
         print(f"  {cmd:<16} - {desc}")
 
 
-
-def show_help():
-    """Выводит список доступных команд."""
-    print("\nДоступные команды:")
-    print("  go <direction>  - перейти в направлении (north/south/east/west)")
-    print("  look            - осмотреть текущую комнату")
-    print("  take <item>     - поднять предмет")
-    print("  use <item>      - использовать предмет из инвентаря")
-    print("  inventory       - показать инвентарь")
-    print("  solve           - попытаться решить загадку в комнате")
-    print("  quit            - выйти из игры")
-    print("  help            - показать это сообщение")
