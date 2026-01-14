@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+from labyrinth_game.constants import COMMANDS
 from labyrinth_game.utils import (
     describe_current_room, 
     solve_puzzle, 
-    attempt_open_treasure
+    attempt_open_treasure,
+    show_help
 )
 from labyrinth_game.player_actions import (
     get_input, 
@@ -14,8 +16,7 @@ from labyrinth_game.player_actions import (
 
 
 def process_command(game_state, command):
-    """Обрабатывает введенную команду."""
-    # Разбиваем команду на действие и аргумент (например, "go north" -> "go", "north")
+    """Обработка команд с поддержкой коротких направлений."""
     parts = command.split(maxsplit=1)
     
     if not parts:
@@ -24,11 +25,21 @@ def process_command(game_state, command):
     action = parts[0].lower()
     argument = parts[1] if len(parts) > 1 else None
 
+    # Поддержка коротких команд движения (north, south...)
+    if action in ["north", "south", "east", "west"]:
+        # Превращаем "north" в логику "go north"
+        move_player(game_state, action)
+        return
+
     match action:
         case "quit" | "exit":
             print("До встречи!")
             game_state["game_over"] = True
         
+        case "help":
+            # Передаем словарь команд
+            show_help(COMMANDS)
+
         case "go":
             if argument:
                 move_player(game_state, argument)
@@ -54,18 +65,17 @@ def process_command(game_state, command):
             describe_current_room(game_state)
             
         case "solve":
-            # Особый случай для комнаты с сокровищами
+            # Если мы в сокровищнице — solve работает как открытие сундука
             if game_state["current_room"] == "treasure_room":
                 attempt_open_treasure(game_state)
             else:
                 solve_puzzle(game_state)
                 
         case _:
-            print("Неизвестная команда.")
+            print("Неизвестная команда. Введите 'help' для списка.")
 
 
 def main():
-    # Инициализация состояния игры
     game_state = {
         "player_inventory": [],  
         "current_room": "entrance", 
